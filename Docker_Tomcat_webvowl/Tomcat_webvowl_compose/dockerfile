@@ -1,0 +1,25 @@
+# set the base image
+FROM tomcat:8-alpine
+
+MAINTAINER Tristan Wellman <twellman@usgs.gov>
+
+LABEL version="1.0 beta"
+LABEL description="Docker build of webvowl ontology viewer."
+
+
+# retrieve war file, create users folder
+RUN wget -O ROOT.war \
+      http://downloads.visualdataweb.de/webvowl_1.1.4.war  && \
+      mkdir -p ${CATALINA_HOME}/conf && \  
+      mkdir -p ${CATALINA_HOME}/webapps && \
+      rm -rf ${CATALINA_HOME}/webapps/ROOT
+
+# Copy custom configs to Tomcat folders (users, Manager app, war file)
+COPY tomcat-users.xml ${CATALINA_HOME}/conf/
+COPY context.xml ${CATALINA_HOME}/webapps/manager/META-INF/
+
+# Set JAVA app as default (ROOT) at launch
+RUN mv ROOT.war ${CATALINA_HOME}/webapps/
+
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
